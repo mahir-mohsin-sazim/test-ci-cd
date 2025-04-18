@@ -6,10 +6,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  tls:
-  - hosts:
-    - nextjs-app.local
-    secretName: nextjs-app-tls
   rules:
   - host: nextjs-app.local
     http:

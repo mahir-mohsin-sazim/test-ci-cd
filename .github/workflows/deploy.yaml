@@ -1,0 +1,56 @@
+name: Build & Deploy
+on: [push]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/mahir-mohsin-sazim/test-ci-cd
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print Token
+        run: echo "${{ secrets.GHCR_TOKEN }}"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build & Push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.repository_url }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+          # Ensure correct server IP
+          sed -i "s|server:.*|server: https://$(curl -s ifconfig.me):6443|" ~/.kube/config
+
+      - name: Deploy
+        run: |
+          kubectl apply -f k8s/
+          kubectl rollout status deployment/nextjs-app

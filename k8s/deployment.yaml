@@ -3,33 +3,12 @@ kind: Deployment
 metadata:
   name: nextjs-app
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: nextjs-app
   template:
-    metadata:
-      labels:
-        app: nextjs-app
     spec:
       imagePullSecrets:
-        - name: ghcr-creds 
+        - name: ghcr-creds
       containers:
         - name: nextjs-app
           image: ghcr.io/mahir-mohsin-sazim/test-ci-cd:latest
           ports:
             - containerPort: 3000
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
-          imagePullPolicy: IfNotPresent
-          readinessProbe:               
-            httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 5
-            periodSeconds: 10
