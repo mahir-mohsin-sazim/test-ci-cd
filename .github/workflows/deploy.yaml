@@ -43,12 +43,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure Kubeconfig
+      - name: Configure Kubeconfig 
         run: |
           mkdir -p ~/.kube
           echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
-          # Ensure correct server IP
-          sed -i "s|server:.*|server: https://$(curl -s ifconfig.me):6443|" ~/.kube/config
+
+      - name: Setup SSH Tunnel
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 45.248.151.21 >> ~/.ssh/known_hosts
+          # Test connection with verbose output
+          ssh -vvv -T user@45.248.151.21 || true
+          # Then attempt tunnel
+          ssh -fN -v -o StrictHostKeyChecking=no -L 6443:localhost:6443 user@45.248.151.21
 
       - name: Deploy
         run: |

@@ -11,4 +11,4 @@ spec:
         - name: nextjs-app
           image: ghcr.io/mahir-mohsin-sazim/test-ci-cd:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 3000 
